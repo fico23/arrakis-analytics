@@ -52,8 +52,6 @@ export async function getTermOpened() {
     }
   })
 
-  console.log(vaults)
-
   return vaults
 }
 

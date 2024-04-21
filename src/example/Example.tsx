@@ -54,12 +54,10 @@ const Example = () => {
   }, [])
 
   useEffect(() => {
-    console.log('useEffect selectedvault', selectedVault)
     if (!selectedVault) {
       return
     }
     getVaultRebalances(selectedVault).then((data: RebalancesType) => {
-      console.log('getVaultRebalances finished', data.length)
       setVaultRebalances(data)
       setCurrentRebalance(data[0])
       setCurrentRebalanceIndex(0)
@@ -67,11 +65,6 @@ const Example = () => {
   }, [selectedVault])
 
   useEffect(() => {
-    console.log(
-      'useEffect selectedvault, currentrebalance',
-      selectedVault,
-      currentRebalance
-    )
     if (!selectedVault || !currentRebalance) {
       return
     }
@@ -102,7 +95,7 @@ const Example = () => {
 
   const handleNextRebalance = () => {
     setCurrentRebalanceIndex((prevIndex) => {
-      if (!prevIndex || !vaultRebalances) {
+      if (prevIndex === undefined || !vaultRebalances) {
         return
       }
       const newIndex = prevIndex + 1
@@ -116,7 +109,7 @@ const Example = () => {
 
   const handlePreviousRebalance = () => {
     setCurrentRebalanceIndex((prevIndex) => {
-      if (!prevIndex || !vaultRebalances) {
+      if (prevIndex === undefined || !vaultRebalances) {
         return
       }
       const newIndex = prevIndex - 1

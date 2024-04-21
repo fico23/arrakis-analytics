@@ -54,7 +54,6 @@ export async function getFullPool(
 
   const ranges = await vaultContract.getRanges({ blockTag: blockNumber })
   const fees = [...new Set(ranges.map((x: { feeTier: number }) => x.feeTier))]
-  console.log('fees', fees)
 
   for (const fee of fees) {
     const poolAddress = computePoolAddress({
