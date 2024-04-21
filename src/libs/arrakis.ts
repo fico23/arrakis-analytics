@@ -1,8 +1,9 @@
 import { mainnet } from 'viem/chains'
 import { ArrakisVaultV2ABI } from './abis/ArrakisVaultV2ABI'
 import { PalmTermsABI } from './abis/PalmTermsABI'
-import { getAbiItem, Address, createPublicClient, http } from 'viem'
+import { getAbiItem, Address, createPublicClient, http, erc20Abi } from 'viem'
 import { CurrentConfig } from '../config'
+import { VaultData } from '../example/Example'
 
 export async function getTermOpened() {
   const client = createPublicClient({
@@ -32,13 +33,60 @@ export async function getTermOpened() {
       .flat(),
   })
 
-  return termOpenedLogsRaw.map((v, i) => {
+  const tokenNames = await client.multicall({
+    contracts: [...new Set(tokens)].map((x) => ({
+      address: x.result as Address,
+      abi: erc20Abi,
+      functionName: 'symbol',
+    })),
+  })
+
+  const vaults = termOpenedLogsRaw.map((v, i) => {
     return {
       vault: v.args.vault!,
+      deployBlock: v.blockNumber,
       token0: tokens[i * 2].result as Address,
       token1: tokens[i * 2 + 1].result as Address,
+      symbol0: tokenNames[i * 2].result as string,
+      symbol1: tokenNames[i * 2 + 1].result as string,
     }
   })
+
+  console.log(vaults)
+
+  return vaults
 }
 
-// export async function getVaultAnalytics(vault: Address) {}
+export async function getVaultRebalances(vault: VaultData) {
+  const client = createPublicClient({
+    chain: mainnet,
+    transport: http(CurrentConfig.myConfig.RPC),
+  })
+
+  const rebalances = await client.getLogs({
+    address: vault.vault,
+    fromBlock: vault.deployBlock,
+    event: getAbiItem({ abi: ArrakisVaultV2ABI, name: 'LogRebalance' }),
+  })
+  // const uniqueBlocks = [...new Set(rebalances.map((x) => x.blockNumber))]
+  // const blocks = await Promise.all(
+  //   uniqueBlocks.map((x) => client.getBlock({ blockNumber: x }))
+  // )
+
+  // return rebalances.map((rebalance, index) => ({
+  //   ...rebalance,
+  //   blockTimestamp: blocks[index].timestamp,
+  // }))
+
+  return rebalances
+}
+
+export async function getBlockTimestamp(blockNumber: bigint) {
+  const client = createPublicClient({
+    chain: mainnet,
+    transport: http(CurrentConfig.myConfig.RPC),
+  })
+  const block = await client.getBlock({ blockNumber })
+
+  return block.timestamp
+}

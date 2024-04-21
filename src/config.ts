@@ -38,7 +38,7 @@ export interface ExampleConfig {
 export const CurrentConfig: ExampleConfig = {
   env: Environment.MAINNET,
   rpc: {
-    mainnet: 'https://mainnet.infura.io/v3/0ac57a06f2994538829c14745750d721',
+    mainnet: `https://mainnet.infura.io/v3/${process.env.REACT_APP_INFURA_API_KEY}`,
   },
   pool: {
     tokenA: WBTC_TOKEN,
@@ -50,10 +50,10 @@ export const CurrentConfig: ExampleConfig = {
   },
   myConfig: {
     CHAIN: mainnet,
-    RPC: `https://mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
+    RPC: `https://mainnet.infura.io/v3/${process.env.REACT_APP_INFURA_API_KEY}`,
     VAULT: {
-      ADDRESS: '0xd42dd60fbE8331413383075ac91EDE56784e93D3',
-      DEPLOY_BLOCK: 16543528n,
+      ADDRESS: '0xB041f628e961598af9874BCf30CC865f67fad3EE',
+      DEPLOY_BLOCK: 16535305n,
     },
   },
 }
