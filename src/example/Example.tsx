@@ -1,21 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import './Example.css'
 import { CurrentConfig } from '../config'
-import {
-  getBlockTimestamp,
-  getTermOpened,
-  getVaultRebalances,
-} from '../libs/arrakis'
+import { getBlockTimestamp, getTermOpened, getVaultRebalances } from '../libs/arrakis'
 import { BarChartTick } from '../libs/interfaces'
-import {
-  BarChart,
-  Bar,
-  ResponsiveContainer,
-  Cell,
-  XAxis,
-  YAxis,
-  Tooltip,
-} from 'recharts'
+import { BarChart, Bar, ResponsiveContainer, Cell, XAxis, YAxis, Tooltip } from 'recharts'
 import { Pool } from '@uniswap/v3-sdk'
 import { Address } from 'viem'
 import { getFullPool } from '../libs/pool-data'
@@ -39,15 +27,12 @@ type SingleRebalanceType = RebalancesType extends (infer U)[] ? U : never
 
 const Example = () => {
   const [vaults, setVaults] = useState<VaultData[]>()
-  const [poolsData, setPoolsData] =
-    useState<Awaited<ReturnType<typeof getFullPool>>>()
+  const [poolsData, setPoolsData] = useState<Awaited<ReturnType<typeof getFullPool>>>()
   const [selectedVault, setSelectedVault] = useState<VaultData>()
   const [vaultRebalances, setVaultRebalances] = useState<RebalancesType>()
-  const [currentRebalance, setCurrentRebalance] =
-    useState<SingleRebalanceType>()
+  const [currentRebalance, setCurrentRebalance] = useState<SingleRebalanceType>()
   const [currentRebalanceIndex, setCurrentRebalanceIndex] = useState<number>()
-  const [currentRebalanceTimestamp, setCurrentRebalanceTimestamp] =
-    useState<number>()
+  const [currentRebalanceTimestamp, setCurrentRebalanceTimestamp] = useState<number>()
 
   useEffect(() => {
     getTermOpened().then((data) => setVaults(data))
@@ -74,7 +59,7 @@ const Example = () => {
       selectedVault.symbol0,
       selectedVault.token1,
       selectedVault.symbol1,
-      Number(currentRebalance.blockNumber)
+      currentRebalance.blockNumber
     ).then((data) => setPoolsData(data))
   }, [selectedVault, currentRebalance])
 
@@ -130,23 +115,19 @@ const Example = () => {
           {tick.isCurrent ? (
             <div>
               <p className="tooltip-label">
-                {selectedVault.symbol0} locked:{' '}
-                {tick.liquidityLockedToken0.toFixed(3)}
+                {selectedVault.symbol0} locked: {tick.liquidityLockedToken0.toFixed(3)}
               </p>
               <p className="tooltip-label">
-                {selectedVault.symbol1} locked:{' '}
-                {tick.liquidityLockedToken1.toFixed(3)}
+                {selectedVault.symbol1} locked: {tick.liquidityLockedToken1.toFixed(3)}
               </p>
             </div>
           ) : tick.tickIdx < pool.tickCurrent ? (
             <p className="tooltip-label">
-              {pool.token0.symbol} locked:{' '}
-              {tick.liquidityLockedToken0.toFixed(3)}
+              {pool.token0.symbol} locked: {tick.liquidityLockedToken0.toFixed(3)}
             </p>
           ) : (
             <p className="tooltip-label">
-              {pool.token1.symbol} locked:{' '}
-              {tick.liquidityLockedToken1.toFixed(3)}
+              {pool.token1.symbol} locked: {tick.liquidityLockedToken1.toFixed(3)}
             </p>
           )}
           <p className="tooltip-label">
@@ -169,9 +150,7 @@ const Example = () => {
 
   return (
     <div className="App">
-      {CurrentConfig.rpc.mainnet === '' && (
-        <h2 className="error">Please set your mainnet RPC URL in config.ts</h2>
-      )}
+      {CurrentConfig.rpc.mainnet === '' && <h2 className="error">Please set your mainnet RPC URL in config.ts</h2>}
       <div>
         <select onChange={handleVaultSelectChange} defaultValue={''}>
           <option value="" disabled>
@@ -184,24 +163,15 @@ const Example = () => {
           ))}
         </select>
       </div>
-      {currentRebalance &&
-      currentRebalanceIndex !== undefined &&
-      vaultRebalances ? (
+      {currentRebalance && currentRebalanceIndex !== undefined && vaultRebalances ? (
         <div>
           <h2>
-            Date:{' '}
-            {currentRebalanceTimestamp
-              ? new Date(currentRebalanceTimestamp).toLocaleDateString()
-              : 'loading'}
+            Date: {currentRebalanceTimestamp ? new Date(currentRebalanceTimestamp).toLocaleDateString() : 'loading'}
           </h2>
-          <button
-            onClick={handlePreviousRebalance}
-            disabled={currentRebalanceIndex === 0}>
+          <button onClick={handlePreviousRebalance} disabled={currentRebalanceIndex === 0}>
             Previous Rebalance
           </button>
-          <button
-            onClick={handleNextRebalance}
-            disabled={currentRebalanceIndex === vaultRebalances.length - 1}>
+          <button onClick={handleNextRebalance} disabled={currentRebalanceIndex === vaultRebalances.length - 1}>
             Next Rebalance
           </button>
           {poolsData && selectedVault ? (
@@ -212,13 +182,11 @@ const Example = () => {
                 </h2>
                 <h2>Fee: {`${poolData.fee / 10000} %`}</h2>{' '}
                 <h3>
-                  Price before: 1 {selectedVault.symbol0} ={' '}
-                  {poolData.poolBefore.token0Price.toFixed(4)}{' '}
+                  Price before: 1 {selectedVault.symbol0} = {poolData.poolBefore.token0Price.toFixed(4)}{' '}
                   {selectedVault.symbol1}
                 </h3>
                 <h3>
-                  Price before: 1 {selectedVault.symbol1} ={' '}
-                  {poolData.poolBefore.token1Price.toFixed(4)}{' '}
+                  Price before: 1 {selectedVault.symbol1} = {poolData.poolBefore.token1Price.toFixed(4)}{' '}
                   {selectedVault.symbol0}
                 </h3>
                 <h3>State before:</h3>
@@ -235,38 +203,21 @@ const Example = () => {
                     }}
                     barGap={0}>
                     <XAxis tick={false} />
-                    <YAxis
-                      tick={false}
-                      axisLine={false}
-                      padding={{ top: 0, bottom: 2 }}
-                    />
-                    <Tooltip
-                      isAnimationActive={true}
-                      content={
-                        <CustomTooltip currentPool={poolData.poolBefore} />
-                      }
-                    />
-                    <Bar
-                      dataKey="liquidityActive"
-                      fill="#2172E5"
-                      isAnimationActive={true}>
+                    <YAxis tick={false} axisLine={false} padding={{ top: 0, bottom: 2 }} />
+                    <Tooltip isAnimationActive={true} content={<CustomTooltip currentPool={poolData.poolBefore} />} />
+                    <Bar dataKey="liquidityActive" fill="#2172E5" isAnimationActive={true}>
                       {poolData.ticksBefore.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={entry.isCurrent ? '#F51E87' : '#2172E5'}
-                        />
+                        <Cell key={`cell-${index}`} fill={entry.isCurrent ? '#F51E87' : '#2172E5'} />
                       ))}
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
                 <h3>
-                  Price after: 1 {selectedVault.symbol0} ={' '}
-                  {poolData.poolAfter.token0Price.toFixed(4)}{' '}
+                  Price after: 1 {selectedVault.symbol0} = {poolData.poolAfter.token0Price.toFixed(4)}{' '}
                   {selectedVault.symbol1}
                 </h3>
                 <h3>
-                  Price after: 1 {selectedVault.symbol1} ={' '}
-                  {poolData.poolAfter.token1Price.toFixed(4)}{' '}
+                  Price after: 1 {selectedVault.symbol1} = {poolData.poolAfter.token1Price.toFixed(4)}{' '}
                   {selectedVault.symbol0}
                 </h3>
                 <h3>State after:</h3>
@@ -283,26 +234,11 @@ const Example = () => {
                     }}
                     barGap={0}>
                     <XAxis tick={false} />
-                    <YAxis
-                      tick={false}
-                      axisLine={false}
-                      padding={{ top: 0, bottom: 2 }}
-                    />
-                    <Tooltip
-                      isAnimationActive={true}
-                      content={
-                        <CustomTooltip currentPool={poolData.poolBefore} />
-                      }
-                    />
-                    <Bar
-                      dataKey="liquidityActive"
-                      fill="#2172E5"
-                      isAnimationActive={true}>
+                    <YAxis tick={false} axisLine={false} padding={{ top: 0, bottom: 2 }} />
+                    <Tooltip isAnimationActive={true} content={<CustomTooltip currentPool={poolData.poolBefore} />} />
+                    <Bar dataKey="liquidityActive" fill="#2172E5" isAnimationActive={true}>
                       {poolData.ticksAfter.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={entry.isCurrent ? '#F51E87' : '#2172E5'}
-                        />
+                        <Cell key={`cell-${index}`} fill={entry.isCurrent ? '#F51E87' : '#2172E5'} />
                       ))}
                     </Bar>
                   </BarChart>

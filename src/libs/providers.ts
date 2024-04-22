@@ -3,9 +3,7 @@ import { CurrentConfig } from '../config'
 import { BaseProvider } from '@ethersproject/providers'
 
 // Single copies of provider and wallet
-const mainnetProvider = new ethers.providers.JsonRpcProvider(
-  CurrentConfig.rpc.mainnet
-)
+const mainnetProvider = new ethers.providers.JsonRpcProvider(CurrentConfig.rpc.mainnet)
 
 // Provider  Functions
 

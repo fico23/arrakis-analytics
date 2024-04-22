@@ -3,10 +3,7 @@ import JSBI from 'jsbi'
 import { TickProcessed, GraphTick, BarChartTick } from './interfaces'
 import { Token, CurrencyAmount } from '@uniswap/sdk-core'
 
-const MAX_INT128 = JSBI.subtract(
-  JSBI.exponentiate(JSBI.BigInt(2), JSBI.BigInt(128)),
-  JSBI.BigInt(1)
-)
+const MAX_INT128 = JSBI.subtract(JSBI.exponentiate(JSBI.BigInt(2), JSBI.BigInt(128)), JSBI.BigInt(1))
 
 export async function createBarChartTicks(
   tickCurrent: number,
@@ -67,12 +64,8 @@ function processTicks(
     tickIdx: activeTickIdx,
     liquidityActive: liquidity,
     liquidityNet: JSBI.BigInt(0),
-    price0: parseFloat(
-      tickToPrice(token0, token1, activeTickIdx).toSignificant(18)
-    ),
-    price1: parseFloat(
-      tickToPrice(token1, token0, activeTickIdx).toSignificant(18)
-    ),
+    price0: parseFloat(tickToPrice(token0, token1, activeTickIdx).toSignificant(18)),
+    price1: parseFloat(tickToPrice(token1, token0, activeTickIdx).toSignificant(18)),
     isCurrent: true,
   }
 
@@ -101,9 +94,7 @@ function processTicks(
     tickIdxToTickDictionary
   )
 
-  const TickProcesseds = previousTicks
-    .concat(activeTickProcessed)
-    .concat(subsequentTicks)
+  const TickProcesseds = previousTicks.concat(activeTickProcessed).concat(subsequentTicks)
 
   return TickProcesseds
 }
@@ -133,10 +124,7 @@ function computeInitializedTicks(
         ? previousTickProcessed.tickIdx + tickSpacing
         : previousTickProcessed.tickIdx - tickSpacing
 
-    if (
-      currentTickIdx < TickMath.MIN_TICK ||
-      currentTickIdx > TickMath.MAX_TICK
-    ) {
+    if (currentTickIdx < TickMath.MIN_TICK || currentTickIdx > TickMath.MAX_TICK) {
       break
     }
 
@@ -144,21 +132,14 @@ function computeInitializedTicks(
       tickIdx: currentTickIdx,
       liquidityActive: previousTickProcessed.liquidityActive,
       liquidityNet: JSBI.BigInt(0),
-      price0: parseFloat(
-        tickToPrice(token0, token1, currentTickIdx).toSignificant(18)
-      ),
-      price1: parseFloat(
-        tickToPrice(token1, token0, currentTickIdx).toSignificant(18)
-      ),
+      price0: parseFloat(tickToPrice(token0, token1, currentTickIdx).toSignificant(18)),
+      price1: parseFloat(tickToPrice(token1, token0, currentTickIdx).toSignificant(18)),
       isCurrent: false,
     }
 
-    const currentInitializedTick =
-      tickIdxToTickDictionary[currentTickIdx.toString()]
+    const currentInitializedTick = tickIdxToTickDictionary[currentTickIdx.toString()]
     if (currentInitializedTick) {
-      currentTickProcessed.liquidityNet = JSBI.BigInt(
-        currentInitializedTick.liquidityNet
-      )
+      currentTickProcessed.liquidityNet = JSBI.BigInt(currentInitializedTick.liquidityNet)
     }
 
     if (direction == Direction.ASC && currentInitializedTick) {
@@ -166,10 +147,7 @@ function computeInitializedTicks(
         previousTickProcessed.liquidityActive,
         JSBI.BigInt(currentInitializedTick.liquidityNet)
       )
-    } else if (
-      direction == Direction.DESC &&
-      JSBI.notEqual(previousTickProcessed.liquidityNet, JSBI.BigInt(0))
-    ) {
+    } else if (direction == Direction.DESC && JSBI.notEqual(previousTickProcessed.liquidityNet, JSBI.BigInt(0))) {
       // We are iterating descending, so look at the previous tick and apply any net liquidity.
       currentTickProcessed.liquidityActive = JSBI.subtract(
         previousTickProcessed.liquidityActive,
@@ -213,30 +191,15 @@ async function calculateLockedLiqudity(
   ]
   const pool =
     token0 && token1 && feeTier
-      ? new Pool(
-          token0,
-          token1,
-          feeTier,
-          sqrtPriceX96,
-          tick.liquidityActive,
-          tick.tickIdx,
-          mockTicks
-        )
+      ? new Pool(token0, token1, feeTier, sqrtPriceX96, tick.liquidityActive, tick.tickIdx, mockTicks)
       : undefined
   const prevSqrtX96 = TickMath.getSqrtRatioAtTick(tick.tickIdx - tickSpacing)
-  const maxAmountToken0 = token0
-    ? CurrencyAmount.fromRawAmount(token0, MAX_INT128.toString())
-    : undefined
-  const outputRes0 =
-    pool && maxAmountToken0
-      ? await pool.getOutputAmount(maxAmountToken0, prevSqrtX96)
-      : undefined
+  const maxAmountToken0 = token0 ? CurrencyAmount.fromRawAmount(token0, MAX_INT128.toString()) : undefined
+  const outputRes0 = pool && maxAmountToken0 ? await pool.getOutputAmount(maxAmountToken0, prevSqrtX96) : undefined
 
   const token1Amount = outputRes0?.[0] as CurrencyAmount<Token> | undefined
 
-  const amount0 = token1Amount
-    ? parseFloat(token1Amount.toExact()) * tick.price1
-    : 0
+  const amount0 = token1Amount ? parseFloat(token1Amount.toExact()) * tick.price1 : 0
   const amount1 = token1Amount ? parseFloat(token1Amount.toExact()) : 0
 
   return {

@@ -16,7 +16,7 @@
     "react-scripts": "5.0.1",
     "recharts": "^2.6.2",
     "typescript": "^5.4.5",
-    "viem": "^2.9.23"
+    "viem": "^2.9.25"
   },
   "scripts": {
     "start": "react-scripts start",

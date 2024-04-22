@@ -30,6 +30,7 @@ export interface ExampleConfig {
       ADDRESS: Address
       DEPLOY_BLOCK: bigint
     }
+    ARRAKIS_HELPER: Address
   }
 }
 
@@ -55,5 +56,6 @@ export const CurrentConfig: ExampleConfig = {
       ADDRESS: '0xB041f628e961598af9874BCf30CC865f67fad3EE',
       DEPLOY_BLOCK: 16535305n,
     },
+    ARRAKIS_HELPER: '0x89E4bE1F999E3a58D16096FBe405Fc2a1d7F07D6',
   },
 }
