@@ -221,7 +221,6 @@ const Example = () => {
                 {poolData.positionsBefore.map((x, i) => (
                   <div key={i.toString()} className="pool-data">
                     <h3>
-                      Lower tick:{' '}
                       {x.token0PriceLower
                         .quote(
                           CurrencyAmount.fromRawAmount(
@@ -229,21 +228,17 @@ const Example = () => {
                             parseUnits('1', poolsData.decimals0).toString()
                           )
                         )
-                        .toFixed(6)}
-                    </h3>
-                    <h3>
-                      Upper tick:{' '}
+                        .toFixed(6)}{' '}
+                      -{' '}
                       {x.token0PriceUpper
                         .quote(
                           CurrencyAmount.fromRawAmount(
                             poolsData.token0,
-                            JSBI.BigInt(parseUnits('1', poolsData.decimals0).toString())
+                            parseUnits('1', poolsData.decimals0).toString()
                           )
                         )
-                        .toFixed(6)}
-                    </h3>
-                    <h3>
-                      {x.amount0.toFixed(2)} {selectedVault.symbol0} + {x.amount1.toFixed(2)} {selectedVault.symbol1}
+                        .toFixed(6)}{' '}
+                      = {x.amount0.toFixed(2)} {selectedVault.symbol0} + {x.amount1.toFixed(2)} {selectedVault.symbol1}
                     </h3>
                   </div>
                 ))}
@@ -282,7 +277,6 @@ const Example = () => {
                 {poolData.positionsAfter.map((x, i) => (
                   <div key={i.toString()} className="pool-data">
                     <h3>
-                      Lower tick:{' '}
                       {x.token0PriceLower
                         .quote(
                           CurrencyAmount.fromRawAmount(
@@ -290,10 +284,8 @@ const Example = () => {
                             parseUnits('1', poolsData.decimals0).toString()
                           )
                         )
-                        .toFixed(6)}
-                    </h3>
-                    <h3>
-                      Upper tick:{' '}
+                        .toFixed(6)}{' '}
+                      -{' '}
                       {x.token0PriceUpper
                         .quote(
                           CurrencyAmount.fromRawAmount(
@@ -301,10 +293,8 @@ const Example = () => {
                             parseUnits('1', poolsData.decimals0).toString()
                           )
                         )
-                        .toFixed(6)}
-                    </h3>
-                    <h3>
-                      {x.amount0.toFixed(2)} {selectedVault.symbol0} + {x.amount1.toFixed(2)} {selectedVault.symbol1}
+                        .toFixed(6)}{' '}
+                      = {x.amount0.toFixed(2)} {selectedVault.symbol0} + {x.amount1.toFixed(2)} {selectedVault.symbol1}
                     </h3>
                   </div>
                 ))}
