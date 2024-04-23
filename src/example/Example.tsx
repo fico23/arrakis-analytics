@@ -5,8 +5,10 @@ import { getBlockTimestamp, getTermOpened, getVaultRebalances } from '../libs/ar
 import { BarChartTick } from '../libs/interfaces'
 import { BarChart, Bar, ResponsiveContainer, Cell, XAxis, YAxis, Tooltip } from 'recharts'
 import { Pool } from '@uniswap/v3-sdk'
-import { Address } from 'viem'
+import { Address, formatUnits, parseUnits } from 'viem'
 import { getFullPool } from '../libs/pool-data'
+import JSBI from 'jsbi'
+import { CurrencyAmount } from '@uniswap/sdk-core'
 
 export interface PoolData {
   pool: Pool
@@ -78,6 +80,30 @@ const Example = () => {
     setSelectedVault(vaults!.find((vault) => vault.vault === e.target.value))
   }
 
+  const formatTokenBalancesBefore = () => {
+    if (!poolsData || !selectedVault) {
+      return ''
+    }
+
+    return `${parseFloat(formatUnits(poolsData.token0BalanceBefore, poolsData.decimals0)).toFixed(2)} ${
+      selectedVault.symbol0
+    } + ${parseFloat(formatUnits(poolsData.token1BalanceBefore, poolsData.decimals1)).toFixed(2)} ${
+      selectedVault.symbol1
+    }`
+  }
+
+  const formatTokenBalancesAfter = () => {
+    if (!poolsData || !selectedVault) {
+      return ''
+    }
+
+    return `${parseFloat(formatUnits(poolsData.token0BalanceAfter, poolsData.decimals0)).toFixed(2)} ${
+      selectedVault.symbol0
+    } + ${parseFloat(formatUnits(poolsData.token1BalanceAfter, poolsData.decimals1)).toFixed(2)} ${
+      selectedVault.symbol1
+    }`
+  }
+
   const handleNextRebalance = () => {
     setCurrentRebalanceIndex((prevIndex) => {
       if (prevIndex === undefined || !vaultRebalances) {
@@ -115,27 +141,27 @@ const Example = () => {
           {tick.isCurrent ? (
             <div>
               <p className="tooltip-label">
-                {selectedVault.symbol0} locked: {tick.liquidityLockedToken0.toFixed(3)}
+                {selectedVault.symbol0} locked: {tick.liquidityLockedToken0.toFixed(6)}
               </p>
               <p className="tooltip-label">
-                {selectedVault.symbol1} locked: {tick.liquidityLockedToken1.toFixed(3)}
+                {selectedVault.symbol1} locked: {tick.liquidityLockedToken1.toFixed(6)}
               </p>
             </div>
           ) : tick.tickIdx < pool.tickCurrent ? (
             <p className="tooltip-label">
-              {pool.token0.symbol} locked: {tick.liquidityLockedToken0.toFixed(3)}
+              {pool.token0.symbol} locked: {tick.liquidityLockedToken0.toFixed(6)}
             </p>
           ) : (
             <p className="tooltip-label">
-              {pool.token1.symbol} locked: {tick.liquidityLockedToken1.toFixed(3)}
+              {pool.token1.symbol} locked: {tick.liquidityLockedToken1.toFixed(6)}
             </p>
           )}
           <p className="tooltip-label">
-            Price {pool.token0.symbol}: {tick.price0.toFixed(4)}
+            Price {pool.token0.symbol}: {tick.price0.toFixed(6)}
             {pool.token1.symbol}
           </p>
           <p className="tooltip-label">
-            Price {pool.token1.symbol}: {tick.price1.toFixed(4)}
+            Price {pool.token1.symbol}: {tick.price1.toFixed(6)}
             {pool.token0.symbol}
           </p>
         </div>
@@ -149,7 +175,7 @@ const Example = () => {
   }
 
   return (
-    <div className="App">
+    <div className="App" style={{ minWidth: '800px' }}>
       {CurrentConfig.rpc.mainnet === '' && <h2 className="error">Please set your mainnet RPC URL in config.ts</h2>}
       <div>
         <select onChange={handleVaultSelectChange} defaultValue={''}>
@@ -174,22 +200,53 @@ const Example = () => {
           <button onClick={handleNextRebalance} disabled={currentRebalanceIndex === vaultRebalances.length - 1}>
             Next Rebalance
           </button>
+          <h3>vault before: {formatTokenBalancesBefore()}</h3>
+          <h3>vault after: {formatTokenBalancesAfter()}</h3>
           {poolsData && selectedVault ? (
-            Object.entries(poolsData).map(([poolAddress, poolData]) => (
+            Object.entries(poolsData.pools).map(([poolAddress, poolData]) => (
               <div key={poolAddress} className="pool-data">
-                <h2>
-                  Pool: {selectedVault.symbol0} / {selectedVault.symbol1}
-                </h2>
-                <h2>Fee: {`${poolData.fee / 10000} %`}</h2>{' '}
                 <h3>
-                  Price before: 1 {selectedVault.symbol0} = {poolData.poolBefore.token0Price.toFixed(4)}{' '}
+                  Pool: {selectedVault.symbol0} / {selectedVault.symbol1} {`${poolData.fee / 10000} %`}
+                </h3>
+                <h4>
+                  Price before: 1 {selectedVault.symbol0} = {poolData.poolBefore.token0Price.toFixed(6)}{' '}
                   {selectedVault.symbol1}
-                </h3>
-                <h3>
-                  Price before: 1 {selectedVault.symbol1} = {poolData.poolBefore.token1Price.toFixed(4)}{' '}
+                </h4>
+                <h4>
+                  Price before: 1 {selectedVault.symbol1} = {poolData.poolBefore.token1Price.toFixed(6)}{' '}
                   {selectedVault.symbol0}
-                </h3>
-                <h3>State before:</h3>
+                </h4>
+                <h4>State before:</h4>
+                <h4>positions before:</h4>
+                {poolData.positionsBefore.map((x, i) => (
+                  <div key={i.toString()} className="pool-data">
+                    <h3>
+                      Lower tick:{' '}
+                      {x.token0PriceLower
+                        .quote(
+                          CurrencyAmount.fromRawAmount(
+                            poolsData.token0,
+                            parseUnits('1', poolsData.decimals0).toString()
+                          )
+                        )
+                        .toFixed(6)}
+                    </h3>
+                    <h3>
+                      Upper tick:{' '}
+                      {x.token0PriceUpper
+                        .quote(
+                          CurrencyAmount.fromRawAmount(
+                            poolsData.token0,
+                            JSBI.BigInt(parseUnits('1', poolsData.decimals0).toString())
+                          )
+                        )
+                        .toFixed(6)}
+                    </h3>
+                    <h3>
+                      {x.amount0.toFixed(2)} {selectedVault.symbol0} + {x.amount1.toFixed(2)} {selectedVault.symbol1}
+                    </h3>
+                  </div>
+                ))}
                 <ResponsiveContainer height={400}>
                   <BarChart
                     width={500}
@@ -212,15 +269,45 @@ const Example = () => {
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
-                <h3>
-                  Price after: 1 {selectedVault.symbol0} = {poolData.poolAfter.token0Price.toFixed(4)}{' '}
+                <h4>
+                  Price after: 1 {selectedVault.symbol0} = {poolData.poolAfter.token0Price.toFixed(6)}{' '}
                   {selectedVault.symbol1}
-                </h3>
-                <h3>
-                  Price after: 1 {selectedVault.symbol1} = {poolData.poolAfter.token1Price.toFixed(4)}{' '}
+                </h4>
+                <h4>
+                  Price after: 1 {selectedVault.symbol1} = {poolData.poolAfter.token1Price.toFixed(6)}{' '}
                   {selectedVault.symbol0}
-                </h3>
-                <h3>State after:</h3>
+                </h4>
+                <h4>State after:</h4>
+                <h4>positions after:</h4>
+                {poolData.positionsAfter.map((x, i) => (
+                  <div key={i.toString()} className="pool-data">
+                    <h3>
+                      Lower tick:{' '}
+                      {x.token0PriceLower
+                        .quote(
+                          CurrencyAmount.fromRawAmount(
+                            poolsData.token0,
+                            parseUnits('1', poolsData.decimals0).toString()
+                          )
+                        )
+                        .toFixed(6)}
+                    </h3>
+                    <h3>
+                      Upper tick:{' '}
+                      {x.token0PriceUpper
+                        .quote(
+                          CurrencyAmount.fromRawAmount(
+                            poolsData.token0,
+                            parseUnits('1', poolsData.decimals0).toString()
+                          )
+                        )
+                        .toFixed(6)}
+                    </h3>
+                    <h3>
+                      {x.amount0.toFixed(2)} {selectedVault.symbol0} + {x.amount1.toFixed(2)} {selectedVault.symbol1}
+                    </h3>
+                  </div>
+                ))}
                 <ResponsiveContainer height={400}>
                   <BarChart
                     width={500}

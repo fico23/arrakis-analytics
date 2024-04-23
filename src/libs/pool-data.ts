@@ -4,7 +4,7 @@ import axios from 'axios'
 import { CurrentConfig } from '../config'
 import { BarChartTick, GraphTick } from './interfaces'
 import { createBarChartTicks } from './active-liquidity'
-import { Address, createPublicClient, encodePacked, getAddress, http, keccak256 } from 'viem'
+import { Address, createPublicClient, encodePacked, erc20Abi, getAddress, http, keccak256 } from 'viem'
 import { Token } from '@uniswap/sdk-core'
 import { ArrakisVaultV2ABI } from './abis/ArrakisVaultV2ABI'
 import { ArrakisHelperABI } from './abis/ArrakisHelperABI'
@@ -18,6 +18,8 @@ interface PoolData {
   ticksBefore: BarChartTick[]
   poolAfter: Pool
   ticksAfter: BarChartTick[]
+  positionsBefore: Position[]
+  positionsAfter: Position[]
 }
 
 type Pools = Record<string, PoolData>
@@ -29,7 +31,17 @@ export async function getFullPool(
   token1Address: Address,
   token1Symbol: string,
   blockNumber: bigint
-): Promise<Pools> {
+): Promise<{
+  pools: Pools
+  token0BalanceBefore: bigint
+  token1BalanceBefore: bigint
+  token0BalanceAfter: bigint
+  token1BalanceAfter: bigint
+  decimals0: number
+  decimals1: number
+  token0: Token
+  token1: Token
+}> {
   const token0 = new Token(CurrentConfig.myConfig.CHAIN.id, token0Address, 18, token0Symbol, token0Symbol)
   const token1 = new Token(CurrentConfig.myConfig.CHAIN.id, token1Address, 18, token1Symbol, token1Symbol)
 
@@ -47,52 +59,20 @@ export async function getFullPool(
     functionName: 'totalUnderlyingWithFees',
     args: [vault],
   })
-  const [totalUnderylingBefore, totalLiqudityBefore, rangesBefore] = await client.multicall({
-    contracts: [
-      {
-        address: CurrentConfig.myConfig.ARRAKIS_HELPER,
-        abi: ArrakisHelperABI,
-        functionName: 'totalUnderlyingWithFees',
-        args: [vault],
-      },
-      {
-        address: CurrentConfig.myConfig.ARRAKIS_HELPER,
-        abi: ArrakisHelperABI,
-        functionName: 'totalLiquidity',
-        args: [vault],
-      },
-      {
-        address: vault,
-        abi: ArrakisVaultV2ABI,
-        functionName: 'getRanges',
-      },
-    ],
-    blockNumber: blockBefore,
-    allowFailure: false,
-  })
-  const [totalUnderylingAfter, totalLiqudityAfter, rangesAfter] = await client.multicall({
-    contracts: [
-      {
-        address: CurrentConfig.myConfig.ARRAKIS_HELPER,
-        abi: ArrakisHelperABI,
-        functionName: 'totalUnderlyingWithFees',
-        args: [vault],
-      },
-      {
-        address: CurrentConfig.myConfig.ARRAKIS_HELPER,
-        abi: ArrakisHelperABI,
-        functionName: 'totalLiquidity',
-        args: [vault],
-      },
-      {
-        address: vault,
-        abi: ArrakisVaultV2ABI,
-        functionName: 'getRanges',
-      },
-    ],
-    blockNumber: blockAfter,
-    allowFailure: false,
-  })
+  const [rangesBefore, rangesAfter] = await Promise.all([
+    client.readContract({
+      address: vault,
+      abi: ArrakisVaultV2ABI,
+      functionName: 'getRanges',
+      blockNumber: blockBefore,
+    }),
+    client.readContract({
+      address: vault,
+      abi: ArrakisVaultV2ABI,
+      functionName: 'getRanges',
+      blockNumber: blockAfter,
+    }),
+  ])
 
   const pools: Pools = {}
 
@@ -230,6 +210,8 @@ export async function getFullPool(
       ticksBefore: barChartTicksBefore,
       poolAfter: fullPoolAfter,
       ticksAfter: barChartTicksAfter,
+      positionsBefore: [],
+      positionsAfter: [],
     }
   }
 
@@ -279,7 +261,53 @@ export async function getFullPool(
     allowFailure: false,
   })
 
-  const positionsBefore = []
+  const [token0BalanceBefore, token1BalanceBefore] = await client.multicall({
+    contracts: [
+      {
+        address: getAddress(token0.address),
+        abi: erc20Abi,
+        functionName: 'balanceOf',
+        args: [vault],
+      },
+      {
+        address: getAddress(token1.address),
+        abi: erc20Abi,
+        functionName: 'balanceOf',
+        args: [vault],
+      },
+    ],
+    blockNumber: blockBefore,
+    allowFailure: false,
+  })
+  const [token0BalanceAfter, token1BalanceAfter, decimals0, decimals1] = await client.multicall({
+    contracts: [
+      {
+        address: getAddress(token0.address),
+        abi: erc20Abi,
+        functionName: 'balanceOf',
+        args: [vault],
+      },
+      {
+        address: getAddress(token1.address),
+        abi: erc20Abi,
+        functionName: 'balanceOf',
+        args: [vault],
+      },
+      {
+        address: getAddress(token1.address),
+        abi: erc20Abi,
+        functionName: 'decimals',
+      },
+      {
+        address: getAddress(token1.address),
+        abi: erc20Abi,
+        functionName: 'decimals',
+      },
+    ],
+    blockNumber: blockAfter,
+    allowFailure: false,
+  })
+
   for (const rangeIdx in rangesBefore) {
     const range = rangesBefore[rangeIdx]
     const poolAddress = getAddress(
@@ -292,7 +320,7 @@ export async function getFullPool(
     )
     const liquidityBefore = liquiditiesBefore[rangeIdx]
 
-    positionsBefore.push(
+    pools[poolAddress].positionsBefore.push(
       new Position({
         pool: pools[poolAddress].poolBefore,
         liquidity: liquidityBefore[0].toString(),
@@ -302,7 +330,6 @@ export async function getFullPool(
     )
   }
 
-  const positionsAfter = []
   for (const rangeIdx in rangesAfter) {
     const range = rangesAfter[rangeIdx]
     const poolAddress = getAddress(
@@ -315,7 +342,7 @@ export async function getFullPool(
     )
     const liquidityAfter = liquiditiesAfter[rangeIdx]
 
-    positionsAfter.push(
+    pools[poolAddress].positionsAfter.push(
       new Position({
         pool: pools[poolAddress].poolAfter,
         liquidity: liquidityAfter[0].toString(),
@@ -325,7 +352,22 @@ export async function getFullPool(
     )
   }
 
-  return pools
+  for (const poolAddress of Object.keys(pools)) {
+    pools[poolAddress].positionsBefore.sort((a, b) => a.tickLower - b.tickLower)
+    pools[poolAddress].positionsAfter.sort((a, b) => a.tickLower - b.tickLower)
+  }
+
+  return {
+    pools,
+    token0BalanceBefore,
+    token1BalanceBefore,
+    token0BalanceAfter,
+    token1BalanceAfter,
+    decimals0,
+    decimals1,
+    token0,
+    token1,
+  }
 }
 
 async function getFullTickData(poolAddress: string, blockNumber: number): Promise<GraphTick[]> {
