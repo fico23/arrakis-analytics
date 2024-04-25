@@ -9,6 +9,9 @@ import { Address, formatUnits, parseUnits } from 'viem'
 import { getFullPool } from '../libs/pool-data'
 import JSBI from 'jsbi'
 import { CurrencyAmount } from '@uniswap/sdk-core'
+import Container from 'react-bootstrap/Container'
+import Row from 'react-bootstrap/Row'
+import Col from 'react-bootstrap/Col'
 
 export interface PoolData {
   pool: Pool
@@ -175,160 +178,127 @@ const Example = () => {
   }
 
   return (
-    <div className="App" style={{ minWidth: '800px' }}>
-      {CurrentConfig.rpc.mainnet === '' && <h2 className="error">Please set your mainnet RPC URL in config.ts</h2>}
-      <div>
-        <select onChange={handleVaultSelectChange} defaultValue={''}>
-          <option value="" disabled>
-            Select a vault...
-          </option>
-          {vaults.map((vault, index) => (
-            <option key={index} value={vault.vault}>
-              {vault.symbol0} / {vault.symbol1}
-            </option>
-          ))}
-        </select>
-      </div>
-      {currentRebalance && currentRebalanceIndex !== undefined && vaultRebalances ? (
-        <div>
-          <h2>
-            Date: {currentRebalanceTimestamp ? new Date(currentRebalanceTimestamp).toLocaleDateString() : 'loading'}
-          </h2>
-          <button onClick={handlePreviousRebalance} disabled={currentRebalanceIndex === 0}>
-            Previous Rebalance
-          </button>
-          <button onClick={handleNextRebalance} disabled={currentRebalanceIndex === vaultRebalances.length - 1}>
-            Next Rebalance
-          </button>
-          <h3>vault before: {formatTokenBalancesBefore()}</h3>
-          <h3>vault after: {formatTokenBalancesAfter()}</h3>
-          {poolsData && selectedVault ? (
-            Object.entries(poolsData.pools).map(([poolAddress, poolData]) => (
-              <div key={poolAddress} className="pool-data">
-                <h3>
-                  Pool: {selectedVault.symbol0} / {selectedVault.symbol1} {`${poolData.fee / 10000} %`}
-                </h3>
-                <h4>
-                  Price before: 1 {selectedVault.symbol0} = {poolData.poolBefore.token0Price.toFixed(6)}{' '}
-                  {selectedVault.symbol1}
-                </h4>
-                <h4>
-                  Price before: 1 {selectedVault.symbol1} = {poolData.poolBefore.token1Price.toFixed(6)}{' '}
-                  {selectedVault.symbol0}
-                </h4>
-                <h4>State before:</h4>
-                <h4>positions before:</h4>
-                {poolData.positionsBefore.map((x, i) => (
-                  <div key={i.toString()} className="pool-data">
-                    <h3>
-                      {x.token0PriceLower
-                        .quote(
-                          CurrencyAmount.fromRawAmount(
-                            poolsData.token0,
-                            parseUnits('1', poolsData.decimals0).toString()
-                          )
-                        )
-                        .toFixed(6)}{' '}
-                      -{' '}
-                      {x.token0PriceUpper
-                        .quote(
-                          CurrencyAmount.fromRawAmount(
-                            poolsData.token0,
-                            parseUnits('1', poolsData.decimals0).toString()
-                          )
-                        )
-                        .toFixed(6)}{' '}
-                      = {x.amount0.toFixed(2)} {selectedVault.symbol0} + {x.amount1.toFixed(2)} {selectedVault.symbol1}
-                    </h3>
-                  </div>
+    <div className="App">
+      <Container>
+        <Row>
+          <Col>
+            <div>
+              <select onChange={handleVaultSelectChange} defaultValue="">
+                <option value="" disabled>
+                  Select a vault...
+                </option>
+                {vaults.map((vault, index) => (
+                  <option key={index} value={vault.vault}>
+                    {vault.symbol0} / {vault.symbol1}
+                  </option>
                 ))}
-                <ResponsiveContainer height={400}>
-                  <BarChart
-                    width={500}
-                    height={300}
-                    data={poolData.ticksBefore}
-                    margin={{
-                      top: 30,
-                      right: 20,
-                      left: 20,
-                      bottom: 30,
-                    }}
-                    barGap={0}>
-                    <XAxis tick={false} />
-                    <YAxis tick={false} axisLine={false} padding={{ top: 0, bottom: 2 }} />
-                    <Tooltip isAnimationActive={true} content={<CustomTooltip currentPool={poolData.poolBefore} />} />
-                    <Bar dataKey="liquidityActive" fill="#2172E5" isAnimationActive={true}>
-                      {poolData.ticksBefore.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.isCurrent ? '#F51E87' : '#2172E5'} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-                <h4>
-                  Price after: 1 {selectedVault.symbol0} = {poolData.poolAfter.token0Price.toFixed(6)}{' '}
-                  {selectedVault.symbol1}
-                </h4>
-                <h4>
-                  Price after: 1 {selectedVault.symbol1} = {poolData.poolAfter.token1Price.toFixed(6)}{' '}
-                  {selectedVault.symbol0}
-                </h4>
-                <h4>State after:</h4>
-                <h4>positions after:</h4>
-                {poolData.positionsAfter.map((x, i) => (
-                  <div key={i.toString()} className="pool-data">
-                    <h3>
-                      {x.token0PriceLower
-                        .quote(
-                          CurrencyAmount.fromRawAmount(
-                            poolsData.token0,
-                            parseUnits('1', poolsData.decimals0).toString()
+              </select>
+            </div>
+          </Col>
+        </Row>
+        {currentRebalance && currentRebalanceIndex !== undefined && vaultRebalances ? (
+          <div>
+            <Row>
+              <Col>Rebalance number {currentRebalanceIndex + 1}</Col>
+              <Col>
+                Date: {currentRebalanceTimestamp ? new Date(currentRebalanceTimestamp).toLocaleString() : 'loading'}
+              </Col>
+            </Row>
+            <Row>
+              <Col>
+                <button onClick={handlePreviousRebalance} disabled={currentRebalanceIndex === 0}>
+                  Previous Rebalance
+                </button>
+                <button onClick={handleNextRebalance} disabled={currentRebalanceIndex === vaultRebalances.length - 1}>
+                  Next Rebalance
+                </button>
+              </Col>
+            </Row>
+            <Row>
+              <Col>tokens in vault before: {formatTokenBalancesBefore()}</Col>
+              <Col>tokens in vault after: {formatTokenBalancesAfter()}</Col>
+            </Row>
+            {poolsData && selectedVault ? (
+              Object.entries(poolsData.pools).map(([poolAddress, poolData]) => (
+                <div key={poolAddress}>
+                  <Row>
+                    <Col md={4}>Fee: {`${poolData.fee / 10000} %`}</Col>
+                    <Col md={4}>
+                      Price before: 1 {selectedVault.symbol0} = {poolData.poolBefore.token0Price.toFixed(6)}{' '}
+                      {selectedVault.symbol1}
+                    </Col>
+                    <Col md={4}>
+                      Price before: 1 {selectedVault.symbol1} = {poolData.poolBefore.token1Price.toFixed(6)}{' '}
+                      {selectedVault.symbol0}
+                    </Col>
+                  </Row>
+                  <Row>
+                    <Col>positions before: {poolData.positionsBefore.length}</Col>
+                  </Row>
+                  {poolData.positionsBefore.map((x, i) => (
+                    <Row key={i}>
+                      <Col>
+                        {x.token0PriceLower
+                          .quote(
+                            CurrencyAmount.fromRawAmount(
+                              poolsData.token0,
+                              parseUnits('1', poolsData.decimals0).toString()
+                            )
                           )
-                        )
-                        .toFixed(6)}{' '}
-                      -{' '}
-                      {x.token0PriceUpper
-                        .quote(
-                          CurrencyAmount.fromRawAmount(
-                            poolsData.token0,
-                            parseUnits('1', poolsData.decimals0).toString()
+                          .toFixed(6)}{' '}
+                        -{' '}
+                        {x.token0PriceUpper
+                          .quote(
+                            CurrencyAmount.fromRawAmount(
+                              poolsData.token0,
+                              parseUnits('1', poolsData.decimals0).toString()
+                            )
                           )
-                        )
-                        .toFixed(6)}{' '}
-                      = {x.amount0.toFixed(2)} {selectedVault.symbol0} + {x.amount1.toFixed(2)} {selectedVault.symbol1}
-                    </h3>
-                  </div>
-                ))}
-                <ResponsiveContainer height={400}>
-                  <BarChart
-                    width={500}
-                    height={300}
-                    data={poolData.ticksAfter}
-                    margin={{
-                      top: 30,
-                      right: 20,
-                      left: 20,
-                      bottom: 30,
-                    }}
-                    barGap={0}>
-                    <XAxis tick={false} />
-                    <YAxis tick={false} axisLine={false} padding={{ top: 0, bottom: 2 }} />
-                    <Tooltip isAnimationActive={true} content={<CustomTooltip currentPool={poolData.poolBefore} />} />
-                    <Bar dataKey="liquidityActive" fill="#2172E5" isAnimationActive={true}>
-                      {poolData.ticksAfter.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.isCurrent ? '#F51E87' : '#2172E5'} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            ))
-          ) : (
-            <p>No pools data available or loading...</p>
-          )}
-        </div>
-      ) : (
-        <p>loading rebalances...</p>
-      )}
+                          .toFixed(6)}{' '}
+                        = {x.amount0.toFixed(2)} {selectedVault.symbol0} + {x.amount1.toFixed(2)}{' '}
+                        {selectedVault.symbol1}
+                      </Col>
+                    </Row>
+                  ))}
+                  <Row>
+                    <Col>
+                      <ResponsiveContainer height={400}>
+                        <BarChart
+                          width={500}
+                          height={300}
+                          data={poolData.ticksBefore}
+                          margin={{
+                            top: 30,
+                            right: 20,
+                            left: 20,
+                            bottom: 30,
+                          }}
+                          barGap={0}>
+                          <XAxis tick={false} />
+                          <YAxis tick={false} axisLine={false} padding={{ top: 0, bottom: 2 }} />
+                          <Tooltip
+                            isAnimationActive={true}
+                            content={<CustomTooltip currentPool={poolData.poolBefore} />}
+                          />
+                          <Bar dataKey="liquidityActive" fill="#2172E5" isAnimationActive={true}>
+                            {poolData.ticksBefore.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.isCurrent ? '#F51E87' : '#2172E5'} />
+                            ))}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </Col>
+                  </Row>
+                </div>
+              ))
+            ) : (
+              <p>loading...</p>
+            )}
+          </div>
+        ) : (
+          <p>loading...</p>
+        )}
+      </Container>
     </div>
   )
 }

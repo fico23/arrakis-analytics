@@ -4,7 +4,7 @@ import axios from 'axios'
 import { CurrentConfig } from '../config'
 import { BarChartTick, GraphTick } from './interfaces'
 import { createBarChartTicks } from './active-liquidity'
-import { Address, createPublicClient, encodePacked, erc20Abi, getAddress, http, keccak256 } from 'viem'
+import { Address, createPublicClient, encodePacked, erc20Abi, getAddress, http, keccak256, parseUnits } from 'viem'
 import { Token } from '@uniswap/sdk-core'
 import { ArrakisVaultV2ABI } from './abis/ArrakisVaultV2ABI'
 import { ArrakisHelperABI } from './abis/ArrakisHelperABI'
@@ -357,12 +357,38 @@ export async function getFullPool(
     pools[poolAddress].positionsAfter.sort((a, b) => a.tickLower - b.tickLower)
   }
 
+  const token0BalanceInPoolBefore = Object.values(pools).reduce((a, b) => {
+    return a + b.positionsBefore.reduce((c, d) => {
+      return c + parseUnits(d.amount0.toFixed(6), decimals0)
+    }, 0n)
+  }, 0n)
+  const token1BalanceInPoolBefore = Object.values(pools).reduce((a, b) => {
+    return a + b.positionsBefore.reduce((c, d) => {
+      return c + parseUnits(d.amount1.toFixed(6), decimals1)
+    }, 0n)
+  }, 0n)
+
+  const token0BalanceInPoolAfter = Object.values(pools).reduce((a, b) => {
+    return a + b.positionsAfter.reduce((c, d) => {
+      return c + parseUnits(d.amount0.toFixed(6), decimals0)
+    }, 0n)
+  }, 0n)
+  const token1BalanceInPoolAfter = Object.values(pools).reduce((a, b) => {
+    return a + b.positionsAfter.reduce((c, d) => {
+      return c + parseUnits(d.amount1.toFixed(6), decimals1)
+    }, 0n)
+  }, 0n)
+
   return {
     pools,
     token0BalanceBefore,
     token1BalanceBefore,
     token0BalanceAfter,
     token1BalanceAfter,
+    token0BalanceInPoolBefore,
+    token1BalanceInPoolBefore,
+    token0BalanceInPoolAfter,
+    token1BalanceInPoolAfter,
     decimals0,
     decimals1,
     token0,
