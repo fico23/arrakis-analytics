@@ -37,6 +37,10 @@ export async function getFullPool(
   token1BalanceBefore: bigint
   token0BalanceAfter: bigint
   token1BalanceAfter: bigint
+  token0BalanceInPoolBefore: bigint
+  token1BalanceInPoolBefore: bigint
+  token0BalanceInPoolAfter: bigint
+  token1BalanceInPoolAfter: bigint
   decimals0: number
   decimals1: number
   token0: Token
@@ -358,25 +362,37 @@ export async function getFullPool(
   }
 
   const token0BalanceInPoolBefore = Object.values(pools).reduce((a, b) => {
-    return a + b.positionsBefore.reduce((c, d) => {
-      return c + parseUnits(d.amount0.toFixed(6), decimals0)
-    }, 0n)
+    return (
+      a +
+      b.positionsBefore.reduce((c, d) => {
+        return c + parseUnits(d.amount0.toFixed(6), decimals0)
+      }, 0n)
+    )
   }, 0n)
   const token1BalanceInPoolBefore = Object.values(pools).reduce((a, b) => {
-    return a + b.positionsBefore.reduce((c, d) => {
-      return c + parseUnits(d.amount1.toFixed(6), decimals1)
-    }, 0n)
+    return (
+      a +
+      b.positionsBefore.reduce((c, d) => {
+        return c + parseUnits(d.amount1.toFixed(6), decimals1)
+      }, 0n)
+    )
   }, 0n)
 
   const token0BalanceInPoolAfter = Object.values(pools).reduce((a, b) => {
-    return a + b.positionsAfter.reduce((c, d) => {
-      return c + parseUnits(d.amount0.toFixed(6), decimals0)
-    }, 0n)
+    return (
+      a +
+      b.positionsAfter.reduce((c, d) => {
+        return c + parseUnits(d.amount0.toFixed(6), decimals0)
+      }, 0n)
+    )
   }, 0n)
   const token1BalanceInPoolAfter = Object.values(pools).reduce((a, b) => {
-    return a + b.positionsAfter.reduce((c, d) => {
-      return c + parseUnits(d.amount1.toFixed(6), decimals1)
-    }, 0n)
+    return (
+      a +
+      b.positionsAfter.reduce((c, d) => {
+        return c + parseUnits(d.amount1.toFixed(6), decimals1)
+      }, 0n)
+    )
   }, 0n)
 
   return {
