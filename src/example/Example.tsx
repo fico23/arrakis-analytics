@@ -12,6 +12,7 @@ import { CurrencyAmount } from '@uniswap/sdk-core'
 import Container from 'react-bootstrap/Container'
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
+import Button from 'react-bootstrap/Button'
 
 export interface PoolData {
   pool: Pool
@@ -206,17 +207,33 @@ const Example = () => {
             </Row>
             <Row>
               <Col>
-                <button onClick={handlePreviousRebalance} disabled={currentRebalanceIndex === 0}>
+                <Button onClick={handlePreviousRebalance} disabled={currentRebalanceIndex === 0}>
                   Previous Rebalance
-                </button>
-                <button onClick={handleNextRebalance} disabled={currentRebalanceIndex === vaultRebalances.length - 1}>
+                </Button>
+              </Col>
+              <Col>
+                <Button onClick={handleNextRebalance} disabled={currentRebalanceIndex === vaultRebalances.length - 1}>
                   Next Rebalance
-                </button>
+                </Button>
               </Col>
             </Row>
             <Row>
-              <Col>tokens in vault before: {formatTokenBalancesBefore()}</Col>
-              <Col>tokens in vault after: {formatTokenBalancesAfter()}</Col>
+              <Col></Col>
+              <Col>vault</Col>
+              <Col>LP</Col>
+            </Row>
+            <Row>
+              <Col>{selectedVault?.symbol0}</Col>
+              <Col>
+                {poolsData
+                  ? parseFloat(formatUnits(poolsData.token0BalanceBefore, poolsData.decimals0)).toFixed(2)
+                  : ''}
+              </Col>
+              <Col>
+                {poolsData
+                  ? parseFloat(formatUnits(poolsData.token0BalanceInPoolBefore, poolsData.decimals0)).toFixed(2)
+                  : ''}
+              </Col>
             </Row>
             {poolsData && selectedVault ? (
               Object.entries(poolsData.pools).map(([poolAddress, poolData]) => (
