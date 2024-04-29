@@ -84,30 +84,6 @@ const Example = () => {
     setSelectedVault(vaults!.find((vault) => vault.vault === e.target.value))
   }
 
-  const formatTokenBalancesBefore = () => {
-    if (!poolsData || !selectedVault) {
-      return ''
-    }
-
-    return `${parseFloat(formatUnits(poolsData.token0BalanceBefore, poolsData.decimals0)).toFixed(2)} ${
-      selectedVault.symbol0
-    } + ${parseFloat(formatUnits(poolsData.token1BalanceBefore, poolsData.decimals1)).toFixed(2)} ${
-      selectedVault.symbol1
-    }`
-  }
-
-  const formatTokenBalancesAfter = () => {
-    if (!poolsData || !selectedVault) {
-      return ''
-    }
-
-    return `${parseFloat(formatUnits(poolsData.token0BalanceAfter, poolsData.decimals0)).toFixed(2)} ${
-      selectedVault.symbol0
-    } + ${parseFloat(formatUnits(poolsData.token1BalanceAfter, poolsData.decimals1)).toFixed(2)} ${
-      selectedVault.symbol1
-    }`
-  }
-
   const handleNextRebalance = () => {
     setCurrentRebalanceIndex((prevIndex) => {
       if (prevIndex === undefined || !vaultRebalances) {
@@ -180,7 +156,7 @@ const Example = () => {
 
   return (
     <div className="App">
-      <Container>
+      <Container fluid="md">
         <Row>
           <Col>
             <div>
@@ -217,40 +193,149 @@ const Example = () => {
                 </Button>
               </Col>
             </Row>
-            <Row>
-              <Col></Col>
-              <Col>vault</Col>
-              <Col>LP</Col>
-            </Row>
-            <Row>
-              <Col>{selectedVault?.symbol0}</Col>
-              <Col>
-                {poolsData
-                  ? parseFloat(formatUnits(poolsData.token0BalanceBefore, poolsData.decimals0)).toFixed(2)
-                  : ''}
-              </Col>
-              <Col>
-                {poolsData
-                  ? parseFloat(formatUnits(poolsData.token0BalanceInPoolBefore, poolsData.decimals0)).toFixed(2)
-                  : ''}
-              </Col>
-            </Row>
-            {poolsData && selectedVault ? (
-              Object.entries(poolsData.pools).map(([poolAddress, poolData]) => (
-                <div key={poolAddress}>
+            <div className="div-table">
+              <Row style={{ marginTop: '40px' }}>
+                <Col xs={2}></Col>
+                <Col xs={5}>
+                  <strong>Before</strong>
+                </Col>
+                <Col xs={5}>
+                  <strong>After</strong>
+                </Col>
+              </Row>
+              <Row>
+                <Col xs={2}></Col>
+                <Col xs={5}>
                   <Row>
-                    <Col md={4}>Fee: {`${poolData.fee / 10000} %`}</Col>
-                    <Col md={4}>
-                      Price before: 1 {selectedVault.symbol0} = {poolData.poolBefore.token0Price.toFixed(6)}{' '}
-                      {selectedVault.symbol1}
-                    </Col>
-                    <Col md={4}>
-                      Price before: 1 {selectedVault.symbol1} = {poolData.poolBefore.token1Price.toFixed(6)}{' '}
-                      {selectedVault.symbol0}
+                    <Col>Vault</Col>
+                    <Col>LP</Col>
+                    <Col>Total</Col>
+                  </Row>
+                </Col>
+                <Col xs={5}>
+                  <Row>
+                    <Col>Vault</Col>
+                    <Col>LP</Col>
+                    <Col>Total</Col>
+                  </Row>
+                </Col>
+              </Row>
+              <Row style={{ marginBottom: '40px' }}>
+                <Col xs={2}>
+                  <Row>
+                    <Col>
+                      <strong>{selectedVault?.symbol0}</strong>
                     </Col>
                   </Row>
                   <Row>
-                    <Col>positions before: {poolData.positionsBefore.length}</Col>
+                    <Col>
+                      <strong>{selectedVault?.symbol1}</strong>
+                    </Col>
+                  </Row>
+                </Col>
+                <Col xs={5}>
+                  <Row>
+                    <Col>
+                      {poolsData
+                        ? parseFloat(formatUnits(poolsData.token0BalanceBefore, poolsData.decimals0)).toFixed(2)
+                        : ''}
+                    </Col>
+                    <Col>
+                      {poolsData
+                        ? parseFloat(formatUnits(poolsData.token0BalanceInPoolBefore, poolsData.decimals0)).toFixed(2)
+                        : ''}
+                    </Col>
+                    <Col>
+                      {poolsData
+                        ? (
+                            parseFloat(formatUnits(poolsData.token0BalanceInPoolBefore, poolsData.decimals0)) +
+                            parseFloat(formatUnits(poolsData.token0BalanceBefore, poolsData.decimals0))
+                          ).toFixed(2)
+                        : ''}
+                    </Col>
+                  </Row>
+                  <Row>
+                    <Col>
+                      {poolsData
+                        ? parseFloat(formatUnits(poolsData.token1BalanceBefore, poolsData.decimals1)).toFixed(2)
+                        : ''}
+                    </Col>
+                    <Col>
+                      {poolsData
+                        ? parseFloat(formatUnits(poolsData.token1BalanceInPoolBefore, poolsData.decimals1)).toFixed(2)
+                        : ''}
+                    </Col>
+                    <Col>
+                      {poolsData
+                        ? (
+                            parseFloat(formatUnits(poolsData.token1BalanceInPoolBefore, poolsData.decimals1)) +
+                            parseFloat(formatUnits(poolsData.token1BalanceBefore, poolsData.decimals1))
+                          ).toFixed(2)
+                        : ''}
+                    </Col>
+                  </Row>
+                </Col>
+                <Col xs={5}>
+                  <Row>
+                    <Col>
+                      {poolsData
+                        ? parseFloat(formatUnits(poolsData.token0BalanceAfter, poolsData.decimals0)).toFixed(2)
+                        : ''}
+                    </Col>
+                    <Col>
+                      {poolsData
+                        ? parseFloat(formatUnits(poolsData.token0BalanceInPoolAfter, poolsData.decimals0)).toFixed(2)
+                        : ''}
+                    </Col>
+                    <Col>
+                      {poolsData
+                        ? (
+                            parseFloat(formatUnits(poolsData.token0BalanceInPoolAfter, poolsData.decimals0)) +
+                            parseFloat(formatUnits(poolsData.token0BalanceAfter, poolsData.decimals0))
+                          ).toFixed(2)
+                        : ''}
+                    </Col>
+                  </Row>
+                  <Row>
+                    <Col>
+                      {poolsData
+                        ? parseFloat(formatUnits(poolsData.token1BalanceAfter, poolsData.decimals1)).toFixed(2)
+                        : ''}
+                    </Col>
+                    <Col>
+                      {poolsData
+                        ? parseFloat(formatUnits(poolsData.token1BalanceInPoolAfter, poolsData.decimals1)).toFixed(2)
+                        : ''}
+                    </Col>
+                    <Col>
+                      {poolsData
+                        ? (
+                            parseFloat(formatUnits(poolsData.token1BalanceInPoolAfter, poolsData.decimals1)) +
+                            parseFloat(formatUnits(poolsData.token1BalanceAfter, poolsData.decimals1))
+                          ).toFixed(2)
+                        : ''}
+                    </Col>
+                  </Row>
+                </Col>
+              </Row>
+            </div>
+
+            {poolsData && selectedVault ? (
+              Object.entries(poolsData.pools).map(([poolAddress, poolData]) => (
+                <div key={poolAddress}>
+                  <Row style={{ marginTop: '40px' }}>
+                    <Col>Fee: {`${poolData.fee / 10000} %`}</Col>
+                  </Row>
+                  <Row>
+                    <Col>
+                      {selectedVault.symbol0}/{selectedVault.symbol1} = {poolData.poolBefore.token0Price.toFixed(6)}{' '}
+                    </Col>
+                    <Col>
+                      {selectedVault.symbol1}/{selectedVault.symbol0} = {poolData.poolBefore.token1Price.toFixed(6)}{' '}
+                    </Col>
+                  </Row>
+                  <Row>
+                    <Col>{poolData.positionsBefore.length} positions before rebalance</Col>
                   </Row>
                   {poolData.positionsBefore.map((x, i) => (
                     <Row key={i}>
@@ -299,6 +384,71 @@ const Example = () => {
                           />
                           <Bar dataKey="liquidityActive" fill="#2172E5" isAnimationActive={true}>
                             {poolData.ticksBefore.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.isCurrent ? '#F51E87' : '#2172E5'} />
+                            ))}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </Col>
+                  </Row>
+                  <Row>
+                    <Col>
+                      {selectedVault.symbol0}/{selectedVault.symbol1} = {poolData.poolAfter.token0Price.toFixed(6)}{' '}
+                    </Col>
+                    <Col>
+                      {selectedVault.symbol1}/{selectedVault.symbol0} = {poolData.poolAfter.token1Price.toFixed(6)}{' '}
+                    </Col>
+                  </Row>
+                  <Row>
+                    <Col>{poolData.positionsAfter.length} positions after rebalance</Col>
+                  </Row>
+                  {poolData.positionsAfter.map((x, i) => (
+                    <Row key={i}>
+                      <Col>
+                        {x.token0PriceLower
+                          .quote(
+                            CurrencyAmount.fromRawAmount(
+                              poolsData.token0,
+                              parseUnits('1', poolsData.decimals0).toString()
+                            )
+                          )
+                          .toFixed(6)}{' '}
+                        -{' '}
+                        {x.token0PriceUpper
+                          .quote(
+                            CurrencyAmount.fromRawAmount(
+                              poolsData.token0,
+                              parseUnits('1', poolsData.decimals0).toString()
+                            )
+                          )
+                          .toFixed(6)}{' '}
+                        = {x.amount0.toFixed(2)} {selectedVault.symbol0} + {x.amount1.toFixed(2)}{' '}
+                        {selectedVault.symbol1}
+                      </Col>
+                    </Row>
+                  ))}
+                  <Row>
+                    <Col>
+                      <ResponsiveContainer height={400}>
+                        <BarChart
+                          width={500}
+                          height={300}
+                          data={poolData.ticksAfter}
+                          margin={{
+                            top: 30,
+                            right: 20,
+                            left: 20,
+                            bottom: 30,
+                          }}
+                          barGap={0}>
+                          <XAxis tick={false} />
+                          <YAxis tick={false} axisLine={false} padding={{ top: 0, bottom: 2 }} />
+                          <Tooltip
+                            isAnimationActive={true}
+                            content={<CustomTooltip currentPool={poolData.poolAfter} />}
+                          />
+                          <Bar dataKey="liquidityActive" fill="#2172E5" isAnimationActive={true}>
+                            {poolData.ticksAfter.map((entry, index) => (
                               <Cell key={`cell-${index}`} fill={entry.isCurrent ? '#F51E87' : '#2172E5'} />
                             ))}
                           </Bar>
