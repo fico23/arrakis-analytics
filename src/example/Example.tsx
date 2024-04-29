@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import './Example.css'
-import { CurrentConfig } from '../config'
 import { getBlockTimestamp, getTermOpened, getVaultRebalances } from '../libs/arrakis'
 import { BarChartTick } from '../libs/interfaces'
 import { BarChart, Bar, ResponsiveContainer, Cell, XAxis, YAxis, Tooltip } from 'recharts'
 import { Pool } from '@uniswap/v3-sdk'
 import { Address, formatUnits, parseUnits } from 'viem'
 import { getFullPool } from '../libs/pool-data'
-import JSBI from 'jsbi'
 import { CurrencyAmount } from '@uniswap/sdk-core'
 import Container from 'react-bootstrap/Container'
 import Row from 'react-bootstrap/Row'
@@ -127,14 +125,15 @@ const Example = () => {
                 {selectedVault.symbol1} locked: {tick.liquidityLockedToken1.toFixed(6)}
               </p>
             </div>
-          ) : tick.tickIdx < pool.tickCurrent ? (
-            <p className="tooltip-label">
-              {pool.token0.symbol} locked: {tick.liquidityLockedToken0.toFixed(6)}
-            </p>
           ) : (
-            <p className="tooltip-label">
-              {pool.token1.symbol} locked: {tick.liquidityLockedToken1.toFixed(6)}
-            </p>
+            <div>
+              <p className="tooltip-label">
+                {pool.token0.symbol} locked: {tick.liquidityLockedToken0.toFixed(6)}
+              </p>
+              <p className="tooltip-label">
+                {pool.token1.symbol} locked: {tick.liquidityLockedToken1.toFixed(6)}
+              </p>
+            </div>
           )}
           <p className="tooltip-label">
             Price {pool.token0.symbol}: {tick.price0.toFixed(6)}
